@@ -8,12 +8,12 @@ import (
 	"encoding/hex"
 	"fmt"
 	"hash"
-	"html/template"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
 
 	"net/url"
 
@@ -248,7 +248,7 @@ func (artifact *Artifact) extension() string {
 // writePom write a wonderful pom
 func (artifact *Artifact) writePom() ([]byte, error) {
 	const templateName = "pom"
-	const templateValue = `<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"><modelVersion>4.0.0</modelVersion><groupId>{{.GroupID}}</groupId><artifactId>{{.ArtifactID}}</artifactId><version>{{.Version}}</version></project>`
+	const templateValue = `<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"><modelVersion>4.0.0</modelVersion><groupId>{{.GroupID}}</groupId><artifactId>{{.ArtifactID}}</artifactId><version>{{.Version}}</version></project>`
 
 	pomTemplate, err := template.New(templateName).Parse(templateValue)
 	if err != nil {

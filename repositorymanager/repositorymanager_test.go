@@ -18,7 +18,7 @@ func init() {
 }
 
 const (
-	expectedPom = `<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"><modelVersion>4.0.0</modelVersion><groupId>com.jeandeaux</groupId><artifactId>elyne</artifactId><version>0.1.0-SNAPSHOT</version></project>`
+	expectedPom = `<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"><modelVersion>4.0.0</modelVersion><groupId>com.jeandeaux</groupId><artifactId>elyne</artifactId><version>0.1.0-SNAPSHOT</version></project>`
 	groupID     = "com.jeandeaux"
 	artifactID  = "elyne"
 	version     = "0.1.0-SNAPSHOT"
@@ -52,8 +52,8 @@ func TestRepository_UploadArtifact(t *testing.T) {
 		calledSha1:   false,
 		calledMd5:    false,
 		expected:     expectedPom,
-		expectedSha1: "1f396c7604363c787362e5916005a0cad72701c0",
-		expectedMd5:  "649de9004a8b0e95a7ed1592bcf1ba8c",
+		expectedSha1: "1a8b00bc4bbeaf8096b6639668cb14861d2514db",
+		expectedMd5:  "a3f28e1e4d5aab8c008e5eb07ebe764e",
 	}
 
 	forFile := call{
