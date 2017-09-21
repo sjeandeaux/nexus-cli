@@ -3,7 +3,7 @@ FROM golang:1.9
 WORKDIR /go/src/github.com/sjeandeaux/nexus-cli
 COPY . .
 
-
+RUN git status --porcelain
 RUN go-wrapper download
 RUN go-wrapper install -ldflags " \
  -X github.com/sjeandeaux/nexus-cli/information.Version=$(cat VERSION) \
