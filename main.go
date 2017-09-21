@@ -9,6 +9,7 @@ import (
 	"github.com/sjeandeaux/nexus-cli/repositorymanager"
 
 	"os"
+	"github.com/sjeandeaux/nexus-cli/information"
 )
 
 type enableHash []string
@@ -58,7 +59,7 @@ func init() {
 
 //main upload artifact
 func main() {
-
+	log.Logger.Println(information.Print())
 	repo := repositorymanager.NewRepository(commandLine.urlOfRepository, commandLine.user, commandLine.password)
 
 	artifact, err := repositorymanager.NewArtifact(commandLine.groupID, commandLine.artifactID, commandLine.version, commandLine.file)
