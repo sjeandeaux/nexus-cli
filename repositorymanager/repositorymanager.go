@@ -20,6 +20,7 @@ import (
 	"github.com/sjeandeaux/nexus-cli/log"
 
 	"errors"
+	"github.com/sjeandeaux/nexus-cli/information"
 )
 
 const (
@@ -107,10 +108,10 @@ func generateURLIssue(h string) string {
 	const (
 		title      = "Move your ass"
 		urlFormat  = "https://github.com/sjeandeaux/nexus-cli/issues/new?title=%s&body=%s"
-		bodyFormat = "Could you add the hash %q lazy man?"
+		bodyFormat = "Could you add the hash %q lazy man?\n%s"
 	)
 	escapedTitle := url.QueryEscape(title)
-	body := fmt.Sprintf(bodyFormat, h)
+	body := fmt.Sprintf(bodyFormat, h, information.Print())
 	escapedBody := url.QueryEscape(body)
 	urlIssue := fmt.Sprintf(urlFormat, escapedTitle, escapedBody)
 	return urlIssue
