@@ -19,7 +19,16 @@ docker run --link nexus:nexus -ti -v $(pwd):$(pwd):ro sjeandeaux/nexus-cli \
                               -version=0.1.0 \
                               -hash md5 \
                               -hash sha1
-
+#or with the binary
+nexus-cli -repo=http://nexus:8081/repository/maven-releases \
+                              -user=admin \
+                              -password=admin123 \
+                              -file=upload.jar \
+                              -groupID=com.jeandeaux \
+                              -artifactID=elyne \
+                              -version=0.1.0 \
+                              -hash md5 \
+                              -hash sha1
 ```
 
 ## TODOs
