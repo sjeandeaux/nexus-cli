@@ -1,4 +1,4 @@
-# nexus-cli
+# nexus-cli [![Build Status](https://travis-ci.org/sjeandeaux/nexus-cli.svg?branch=master)](https://travis-ci.org/sjeandeaux/nexus-cli)
 
 ## upload
 
