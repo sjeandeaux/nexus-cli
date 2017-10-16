@@ -30,9 +30,3 @@ nexus-cli -repo=http://nexus:8081/repository/maven-releases \
                               -hash md5 \
                               -hash sha1
 ```
-
-## TODOs
-
-- [ ] interface for artifact
-- [ ] interface for repository
-- [ ] integration tests
