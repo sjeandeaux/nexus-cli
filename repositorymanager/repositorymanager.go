@@ -6,6 +6,7 @@ import (
 	"crypto/md5"
 	"crypto/sha1"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"hash"
 	"io"
@@ -19,13 +20,15 @@ import (
 
 	"github.com/sjeandeaux/nexus-cli/log"
 
-	"errors"
 	"github.com/sjeandeaux/nexus-cli/information"
 )
 
 const (
-	dot       = "."
-	suffixPom = "pom"
+	dot            = "."
+	suffixPom      = "pom"
+	allReplacement = -1
+	slash          = "/"
+	dash           = "-"
 )
 
 //Repository where we want put the file
@@ -70,6 +73,27 @@ func NewRepository(url, user, password string) *Repository {
 		client:   &http.Client{},
 		hash:     shaOneAndMdFive}
 
+}
+
+//DeleteArtifact deletes the artifact
+//ar the artifact to delete
+//hashs list of hash to delete
+func (n *Repository) DeleteArtifact(ar *Artifact, hashs ...string) error {
+	pomURL := n.generateURL(ar, suffixPom)
+	if err := n.delete(pomURL); err != nil {
+		return err
+	}
+
+	fileURL := n.generateURL(ar, ar.extension())
+	if err := n.delete(fileURL); err != nil {
+		return err
+	}
+
+	for _, h := range hashs {
+		//if we can't delete hash we continue
+		n.deleteHash(ar, h)
+	}
+	return nil
 }
 
 //UploadArtifact upload ar on repository TODO goroutine to upload
@@ -120,12 +144,6 @@ func generateURLIssue(h string) string {
 //generateURL generate the url of ar
 // <url>/<groupID/<arID>/<version>/<arID>-<version>.<endOfFile>
 func (n *Repository) generateURL(ar *Artifact, endOfFile string) string {
-	const (
-		allReplacement = -1
-		slash          = "/"
-		dash           = "-"
-	)
-
 	g := strings.Replace(ar.GroupID, dot, slash, allReplacement)
 	nameOfFile := fmt.Sprint(slash, ar.ArtifactID, dash, ar.Version, dot, endOfFile)
 	return fmt.Sprint(n.url, slash, g, slash, ar.ArtifactID, slash, ar.Version, nameOfFile)
@@ -147,8 +165,23 @@ func (n *Repository) uploadHash(ar *Artifact, h *repositoryHash) error {
 	return n.upload(hashedFile, f)
 }
 
+//deleteHash delete the hash
+func (n *Repository) deleteHash(ar *Artifact, h string) error {
+	hashedPom := n.generateURL(ar, fmt.Sprint(suffixPom, dot, h))
+	if err := n.delete(hashedPom); err != nil {
+		return err
+	}
+
+	hashedFile := n.generateURL(ar, fmt.Sprint(ar.extension(), dot, h))
+	return n.delete(hashedFile)
+}
+
 func (n *Repository) upload(url string, data io.Reader) error {
-	const PUT = "PUT"
+	const (
+		PUT         = "PUT"
+		httpSuccess = 201
+	)
+
 	log.Logger.Print(url)
 	req, _ := http.NewRequest(PUT, url, data)
 	if n.user != "" && n.password != "" {
@@ -161,7 +194,27 @@ func (n *Repository) upload(url string, data io.Reader) error {
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != 201 {
+	if res.StatusCode != httpSuccess {
+		return fmt.Errorf(res.Status)
+	}
+	return nil
+}
+
+func (n *Repository) delete(url string) error {
+	const httpSuccess = 204
+	log.Logger.Print(url)
+	req, _ := http.NewRequest(http.MethodDelete, url, nil)
+	if n.user != "" && n.password != "" {
+		req.SetBasicAuth(n.user, n.password)
+	}
+
+	res, err := n.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != httpSuccess {
 		return fmt.Errorf(res.Status)
 	}
 	return nil
@@ -212,13 +265,10 @@ type Artifact struct {
 
 //NewArtifact create a artifact with this own pom
 func NewArtifact(groupID, artifactID, version, file string) (*Artifact, error) {
+
 	if file == "" {
 		return nil, errors.New("You must specify a file")
 
-	}
-
-	if _, err := os.Stat(file); os.IsNotExist(err) {
-		return nil, err
 	}
 
 	a := &Artifact{

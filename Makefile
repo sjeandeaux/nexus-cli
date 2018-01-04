@@ -3,7 +3,9 @@ os=linux
 arch=amd64
 
 test:
-	go test ./... 
+	go test ./...
+nexus:
+	docker run -d -p 8081:8081 --name nexus sonatype/nexus3
 
 build: test
 	GOOS=$(os) GOARCH=$(arch) go build -ldflags " \
@@ -14,3 +16,27 @@ build: test
 	     -X github.com/sjeandeaux/nexus-cli/information.GitDirty=$(shell test -n "`git status --porcelain`" && echo "+CHANGES" || true)" \
 	     -o dist/$(os)_$(arch)_nexus_cli
 
+upload:
+	touch upload.jar
+	go run main.go -repo=http://localhost:8081/repository/maven-releases \
+                              -user=admin \
+                              -password=admin123 \
+                              -action PUT \
+                              -file=upload.jar \
+                              -groupID=com.jeandeaux \
+                              -artifactID=elyne \
+                              -version=0.1.0 \
+                              -hash md5 \
+                              -hash sha1
+
+delete:
+	go run main.go -repo=http://localhost:8081/repository/maven-releases \
+                              -user=admin \
+                              -password=admin123 \
+															-file=upload.jar \
+                              -action DELETE \
+                              -groupID=com.jeandeaux \
+                              -artifactID=elyne \
+                              -version=0.1.0 \
+															-hash md5 \
+                              -hash sha1

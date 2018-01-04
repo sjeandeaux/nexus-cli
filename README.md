@@ -1,6 +1,10 @@
 # nexus-cli [![Build Status](https://travis-ci.org/sjeandeaux/nexus-cli.svg?branch=master)](https://travis-ci.org/sjeandeaux/nexus-cli)
 
-## upload
+## TODOs
+
+* 1.0.0 refactoring model because it is the godawful mess
+
+## nexus-cli
 
 I share a volume where i have my upload.jar file.
 
@@ -23,6 +27,18 @@ docker run --link nexus:nexus -ti -v $(pwd):$(pwd):ro sjeandeaux/nexus-cli \
 nexus-cli -repo=http://nexus:8081/repository/maven-releases \
                               -user=admin \
                               -password=admin123 \
+                              -action PUT \
+                              -file=upload.jar \
+                              -groupID=com.jeandeaux \
+                              -artifactID=elyne \
+                              -version=0.1.0 \
+                              -hash md5 \
+                              -hash sha1
+
+nexus-cli -repo=http://nexus:8081/repository/maven-releases \
+                              -user=admin \
+                              -password=admin123 \
+                              -action DELETE \
                               -file=upload.jar \
                               -groupID=com.jeandeaux \
                               -artifactID=elyne \
