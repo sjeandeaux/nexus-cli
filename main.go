@@ -9,6 +9,7 @@ import (
 	"github.com/sjeandeaux/nexus-cli/repositorymanager"
 
 	"os"
+
 	"github.com/sjeandeaux/nexus-cli/information"
 )
 
@@ -29,7 +30,9 @@ type commandLineArgs struct {
 	urlOfRepository string
 	user            string
 	password        string
-	//file to upload
+	//action PUT or DELETE
+	action string
+	//file to upload or if we delete we get the extension.
 	file string
 	//groupID of artifact
 	groupID string
@@ -49,7 +52,8 @@ func init() {
 	flag.StringVar(&commandLine.urlOfRepository, "repo", "http://localhost/repository/third-party", "url of repository")
 	flag.StringVar(&commandLine.user, "user", "", "user for repository")
 	flag.StringVar(&commandLine.password, "password", "", "password for repository")
-	flag.StringVar(&commandLine.file, "file", "", "your file to upload on repository")
+	flag.StringVar(&commandLine.action, "action", "", "action PUT or DELETE")
+	flag.StringVar(&commandLine.file, "file", "", "your file to upload on repository or if we delete we get the extension.")
 	flag.StringVar(&commandLine.groupID, "groupID", "com.jeandeaux", "groupid of artifact")
 	flag.StringVar(&commandLine.artifactID, "artifactID", "elyne", "artifactID of artifact")
 	flag.StringVar(&commandLine.version, "version", "0.1.0-SNAPSHOT", "version of artifact")
@@ -59,6 +63,10 @@ func init() {
 
 //main upload artifact
 func main() {
+	const (
+		DELETE = "DELETE"
+		PUT    = "PUT"
+	)
 	log.Logger.Println(information.Print())
 	repo := repositorymanager.NewRepository(commandLine.urlOfRepository, commandLine.user, commandLine.password)
 
@@ -67,7 +75,18 @@ func main() {
 		log.Logger.Fatal(err)
 	}
 
-	if err := repo.UploadArtifact(artifact, commandLine.hash...); err != nil {
-		log.Logger.Fatal(err)
+	switch commandLine.action {
+	case PUT:
+		if err := repo.UploadArtifact(artifact, commandLine.hash...); err != nil {
+			log.Logger.Fatal(err)
+		}
+
+	case DELETE:
+		if err := repo.DeleteArtifact(artifact, commandLine.hash...); err != nil {
+			log.Logger.Fatal(err)
+		}
+	default:
+		log.Logger.Fatal(fmt.Errorf("what do you want to do with %q ", commandLine.action))
 	}
+
 }

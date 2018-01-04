@@ -69,7 +69,7 @@ func TestRepository_UploadArtifact(t *testing.T) {
 	file.WriteString(forFile.expected)
 	extension := filepath.Ext(file.Name())
 
-	ts := repositoryManagerImplementation(t, extension, &forPom, &forFile)
+	ts := repositoryManagerUpload(t, extension, &forPom, &forFile)
 	defer ts.Close()
 	repo := NewRepository(ts.URL, "bob", "thesponge")
 
@@ -92,8 +92,41 @@ func TestRepository_UploadArtifact(t *testing.T) {
 
 }
 
-//repositoryManagerImplementation TODO too big for what is it
-func repositoryManagerImplementation(t *testing.T, extension string, forPom *call, forFile *call) *httptest.Server {
+func TestRepository_DeleteArtifact(t *testing.T) {
+	forPom := call{
+		called:     false,
+		calledSha1: false,
+		calledMd5:  false,
+	}
+
+	forFile := call{
+		called:     false,
+		calledSha1: false,
+		calledMd5:  false,
+	}
+
+	ts := repositoryManagerDelete(t, ".jar", &forPom, &forFile)
+	defer ts.Close()
+	repo := NewRepository(ts.URL, "bob", "thesponge")
+
+	a, _ := NewArtifact(groupID, artifactID, version, "bob.jar")
+	err := repo.DeleteArtifact(a, "sha1", "md5", "not-found")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !forFile.allIsCalled() {
+		t.Errorf("Problem we are waiting more calls %v", forFile)
+	}
+
+	if !forPom.allIsCalled() {
+		t.Errorf("Problem we are waiting more calls %v", forPom)
+	}
+
+}
+
+//repositoryManagerUpload TODO too big for what is it
+func repositoryManagerUpload(t *testing.T, extension string, forPom *call, forFile *call) *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(201)
 		bodyBytes, err := ioutil.ReadAll(r.Body)
@@ -154,6 +187,30 @@ func repositoryManagerImplementation(t *testing.T, extension string, forPom *cal
 	return ts
 }
 
+//repositoryManagerDelete TODO too big for what is it
+func repositoryManagerDelete(t *testing.T, extension string, forPom *call, forFile *call) *httptest.Server {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(204)
+		path := "/com/jeandeaux/elyne/0.1.0-SNAPSHOT/elyne-0.1.0-SNAPSHOT"
+		switch r.URL.Path {
+		case fmt.Sprint(path, ".pom"):
+			forPom.called = true
+		case fmt.Sprint(path, ".pom.sha1"):
+			forPom.calledSha1 = true
+		case fmt.Sprint(path, ".pom.md5"):
+			forPom.calledMd5 = true
+		case fmt.Sprint(path, extension):
+			forFile.called = true
+		case fmt.Sprint(path, extension, ".sha1"):
+			forFile.calledSha1 = true
+		case fmt.Sprint(path, extension, ".md5"):
+			forFile.calledMd5 = true
+		}
+
+	}))
+	return ts
+}
+
 func TestArtifact_writePom(t *testing.T) {
 	a := &Artifact{GroupID: groupID, ArtifactID: artifactID, Version: version}
 	actualBytes, err := a.writePom()
@@ -190,13 +247,6 @@ func TestNewArtifact_Ok(t *testing.T) {
 
 	if actual != expectedPom {
 		t.Fatal("actual", actual, "expected", expectedPom)
-	}
-}
-
-func TestNewArtifact_Ko_Because_Not_Found(t *testing.T) {
-	_, err := NewArtifact(groupID, artifactID, version, "<not found>")
-	if err == nil {
-		t.Fatal("I want a error")
 	}
 }
 
