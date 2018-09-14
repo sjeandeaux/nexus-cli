@@ -36,6 +36,8 @@ type commandLineArgs struct {
 	file string
 	//groupID of artifact
 	groupID string
+	//contentType of artifact
+	contentType string
 	//artifactID of artifact
 	artifactID string
 	//version of artifact
@@ -57,6 +59,7 @@ func init() {
 	flag.StringVar(&commandLine.groupID, "groupID", "com.jeandeaux", "groupid of artifact")
 	flag.StringVar(&commandLine.artifactID, "artifactID", "elyne", "artifactID of artifact")
 	flag.StringVar(&commandLine.version, "version", "0.1.0-SNAPSHOT", "version of artifact")
+	flag.StringVar(&commandLine.contentType, "contentType", "", "content-type of artifact")
 	flag.Var(&commandLine.hash, "hash", "md5 or/and sha1")
 	flag.Parse()
 }
@@ -70,7 +73,7 @@ func main() {
 	log.Logger.Println(information.Print())
 	repo := repositorymanager.NewRepository(commandLine.urlOfRepository, commandLine.user, commandLine.password)
 
-	artifact, err := repositorymanager.NewArtifact(commandLine.groupID, commandLine.artifactID, commandLine.version, commandLine.file)
+	artifact, err := repositorymanager.NewArtifact(commandLine.groupID, commandLine.artifactID, commandLine.version, commandLine.contentType, commandLine.file)
 	if err != nil {
 		log.Logger.Fatal(err)
 	}

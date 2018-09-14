@@ -76,7 +76,7 @@ func TestRepository_UploadArtifact(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	a, _ := NewArtifact(groupID, artifactID, version, file.Name())
+	a, _ := NewArtifact(groupID, artifactID, version, "", file.Name())
 	err = repo.UploadArtifact(a, "sha1", "md5", "not-found")
 	if err != nil {
 		t.Fatal(err)
@@ -109,7 +109,7 @@ func TestRepository_DeleteArtifact(t *testing.T) {
 	defer ts.Close()
 	repo := NewRepository(ts.URL, "bob", "thesponge")
 
-	a, _ := NewArtifact(groupID, artifactID, version, "bob.jar")
+	a, _ := NewArtifact(groupID, artifactID, version, "", "bob.jar")
 	err := repo.DeleteArtifact(a, "sha1", "md5", "not-found")
 	if err != nil {
 		t.Fatal(err)
@@ -238,7 +238,7 @@ func TestNewArtifact_Ok(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	a, err = NewArtifact(groupID, artifactID, version, file.Name())
+	a, err = NewArtifact(groupID, artifactID, version, "", file.Name())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -251,7 +251,7 @@ func TestNewArtifact_Ok(t *testing.T) {
 }
 
 func TestNewArtifact_Ko_Because_Name_Empty(t *testing.T) {
-	_, err := NewArtifact(groupID, artifactID, version, "")
+	_, err := NewArtifact(groupID, artifactID, version, "", "")
 	if err == nil {
 		t.Fatal("I want a error")
 	}

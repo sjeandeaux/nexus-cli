@@ -101,7 +101,7 @@ func (n *Repository) DeleteArtifact(ar *Artifact, hashs ...string) error {
 //hashs list of hash to send
 func (n *Repository) UploadArtifact(ar *Artifact, hashs ...string) error {
 	pomURL := n.generateURL(ar, suffixPom)
-	if err := n.upload(pomURL, bytes.NewReader(ar.Pom)); err != nil {
+	if err := n.upload(pomURL, bytes.NewReader(ar.Pom), ""); err != nil {
 		return err
 	}
 
@@ -111,7 +111,7 @@ func (n *Repository) UploadArtifact(ar *Artifact, hashs ...string) error {
 	}
 
 	fileURL := n.generateURL(ar, ar.extension())
-	if err := n.upload(fileURL, fOpen); err != nil {
+	if err := n.upload(fileURL, fOpen, ar.ContentType); err != nil {
 		return err
 	}
 
@@ -157,12 +157,12 @@ func (n *Repository) uploadHash(ar *Artifact, h *repositoryHash) error {
 	}
 
 	hashedPom := n.generateURL(ar, fmt.Sprint(suffixPom, dot, h.suffix))
-	if err = n.upload(hashedPom, p); err != nil {
+	if err = n.upload(hashedPom, p, ""); err != nil {
 		return err
 	}
 
 	hashedFile := n.generateURL(ar, fmt.Sprint(ar.extension(), dot, h.suffix))
-	return n.upload(hashedFile, f)
+	return n.upload(hashedFile, f, "")
 }
 
 //deleteHash delete the hash
@@ -176,14 +176,17 @@ func (n *Repository) deleteHash(ar *Artifact, h string) error {
 	return n.delete(hashedFile)
 }
 
-func (n *Repository) upload(url string, data io.Reader) error {
+func (n *Repository) upload(url string, data io.Reader, contentType string) error {
 	const (
 		PUT         = "PUT"
 		httpSuccess = 201
+		ContentType = "Content-Type"
 	)
 
 	log.Logger.Print(url)
 	req, _ := http.NewRequest(PUT, url, data)
+	req.Header.Set(ContentType, contentType)
+
 	if n.user != "" && n.password != "" {
 		req.SetBasicAuth(n.user, n.password)
 	}
@@ -257,6 +260,8 @@ type Artifact struct {
 	ArtifactID string
 	//Version of artifact
 	Version string
+	//ContentType for the PUT
+	ContentType string
 	//file to upload
 	File string
 	//pom of this artifact
@@ -264,7 +269,7 @@ type Artifact struct {
 }
 
 //NewArtifact create a artifact with this own pom
-func NewArtifact(groupID, artifactID, version, file string) (*Artifact, error) {
+func NewArtifact(groupID, artifactID, version, contentType, file string) (*Artifact, error) {
 
 	if file == "" {
 		return nil, errors.New("You must specify a file")
@@ -272,10 +277,11 @@ func NewArtifact(groupID, artifactID, version, file string) (*Artifact, error) {
 	}
 
 	a := &Artifact{
-		GroupID:    groupID,
-		ArtifactID: artifactID,
-		Version:    version,
-		File:       file,
+		GroupID:     groupID,
+		ArtifactID:  artifactID,
+		Version:     version,
+		File:        file,
+		ContentType: contentType,
 	}
 
 	pom, err := a.writePom()
@@ -288,7 +294,7 @@ func NewArtifact(groupID, artifactID, version, file string) (*Artifact, error) {
 
 // extension extension of file
 func (artifact *Artifact) extension() string {
-	const unknown = "unknown"
+	const unknown = ""
 
 	if ex := filepath.Ext(artifact.File); ex != "" {
 		return ex[1:]
