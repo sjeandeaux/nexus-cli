@@ -185,7 +185,9 @@ func (n *Repository) upload(url string, data io.Reader, contentType string) erro
 
 	log.Logger.Print(url)
 	req, _ := http.NewRequest(PUT, url, data)
-	req.Header.Set(ContentType, contentType)
+	if contentType != "" {
+		req.Header.Set(ContentType, contentType)
+	}
 
 	if n.user != "" && n.password != "" {
 		req.SetBasicAuth(n.user, n.password)
