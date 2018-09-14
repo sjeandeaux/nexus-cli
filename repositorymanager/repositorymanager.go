@@ -295,7 +295,7 @@ func NewArtifact(groupID, artifactID, version, contentType, file string) (*Artif
 
 // extension extension of file
 func (artifact *Artifact) extension() string {
-	const unknown = "unknown"
+	const unknown = ""
 	i := strings.Index(artifact.File, ".")
 
 	if i != -1 {
