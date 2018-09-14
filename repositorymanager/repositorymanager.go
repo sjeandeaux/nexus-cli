@@ -12,7 +12,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -296,10 +295,12 @@ func NewArtifact(groupID, artifactID, version, contentType, file string) (*Artif
 
 // extension extension of file
 func (artifact *Artifact) extension() string {
-	const unknown = ""
+	const unknown = "unknown"
+	i := strings.Index(artifact.File, ".")
 
-	if ex := filepath.Ext(artifact.File); ex != "" {
-		return ex[1:]
+	if i != -1 {
+		i = 1 + i
+		return artifact.File[i:]
 	}
 	return unknown
 }
