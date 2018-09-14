@@ -178,21 +178,21 @@ func (n *Repository) deleteHash(ar *Artifact, h string) error {
 
 func (n *Repository) upload(url string, data io.Reader, contentType string) error {
 	const (
-		PUT         = "PUT"
-		httpSuccess = 201
-		ContentType = "Content-Type"
+		PUT               = "PUT"
+		httpSuccess       = 201
+		HeaderContentType = "Content-Type"
 	)
 
 	log.Logger.Print(url)
 	req, _ := http.NewRequest(PUT, url, data)
-	if contentType != "" {
-		req.Header.Set(ContentType, contentType)
-	}
 
 	if n.user != "" && n.password != "" {
 		req.SetBasicAuth(n.user, n.password)
 	}
 
+	if contentType != "" {
+		req.Header.Set(HeaderContentType, contentType)
+	}
 	res, err := n.client.Do(req)
 	if err != nil {
 		return err
